@@ -18,6 +18,31 @@ module Day4
 
     private
 
+    def diagonals(matrix, direction)
+      matrix = direction == :right ? matrix.map(&:dup) : matrix.map(&:reverse)
+
+      column_count = matrix.first.length
+      row_count = matrix.length
+
+      diagonals = 0.upto(column_count - 1).map do |first_column_index|
+        diagonal_from(matrix, 0, first_column_index).flatten.compact
+      end
+
+      diagonals + 1.upto(row_count - 1).map do |first_row_index|
+        diagonal_from(matrix, first_row_index, 0).flatten.compact
+      end
+    end
+
+    def diagonal_from(matrix, row_index, column_index)
+      value = matrix.dig(row_index, column_index)
+
+      if value
+        [value, diagonal_from(matrix, row_index + 1, column_index + 1)]
+      else
+        nil
+      end
+    end
+
     def all_matrices(matrix)
       Enumerator.new do |yielder|
         yielder << matrix
@@ -26,30 +51,14 @@ module Day4
         yielder << diagonals(matrix, :left)
       end
     end
-
-    def diagonals(matrix, direction)
-      matrix = direction == :right ? matrix.map(&:dup) : matrix.map(&:reverse)
-
-      padding = "*"
-      row_count = matrix.length
-
-      shifted_matrix = matrix.map.with_index do |line, i|
-        i.times do
-          line.push(padding)
-        end
-
-        (row_count - i).times do
-          line.unshift(padding)
-        end
-
-        line
-      end
-
-      shifted_matrix
-        .transpose
-        .map { |line| line.join.gsub(padding, "").split("") }
-    end
   end
 end
 
-puts Day4::Part1.from_input_file.solve
+require "benchmark"
+
+time = Benchmark.measure do
+  10.times do
+    puts Day4::Part1.from_input_file.solve
+  end
+end
+puts time.real
