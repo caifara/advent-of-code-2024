@@ -7,7 +7,7 @@ module Day4
     end
 
     def solve
-      small_matrices(@base_matrix).to_enum.count do |sm_matrix|
+      small_matrices(@base_matrix).count do |sm_matrix|
         is_x_mas?(sm_matrix)
       end
     end
