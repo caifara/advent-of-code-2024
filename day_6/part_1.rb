@@ -9,38 +9,24 @@ module Day6
       @map_anti_clockwise_turns = 0
     end
 
-    def self.solve
-      Day6::Part1.from_input_file.result_map.split("\n").sum.with_index do |line, y|
-        line.strip.split("").count.with_index do |char, x|
-          puts "testing #{x},#{y}"
-
-          input = from_input_file.tap { |input| input[y][x] = "#" }
-
-          Day6::Part1.new(input)
-            .tap { |p| p.guard_moves }
-            .guard_on_map?
-        end
-      end
+    def solve
+      result_map.scan("*").length
     end
 
-    def guard_moves
+    def result_map
       face_right
 
-      50.times do
+      while guard_on_map?
         move_until_obstacle
-
-        break unlessguard_on_map?
         turn_map_anti_clockwise
       end
 
-      # (4 - @map_anti_clockwise_turns % 4).times { turn_map_anti_clockwise }
-      #
-      # @input
+      (4 - @map_anti_clockwise_turns % 4).times { turn_map_anti_clockwise }
+
+      @input
     end
 
     def self.from_input_file = new Pathname.new(__dir__).join("input.txt").read
-
-    def guard_on_map? = @input.match(GUARD_PATTERN)
 
     private
 
@@ -58,6 +44,8 @@ module Day6
 
       @input = @input.sub(GUARD_PATTERN, ">")
     end
+
+    def guard_on_map? = @input.match(GUARD_PATTERN)
 
     def facing_obstacle? = @input.include?(">#")
 
@@ -88,4 +76,4 @@ module Day6
   end
 end
 
-puts Day6::Part2.solve
+puts Day6::Part1.from_input_file.solve
