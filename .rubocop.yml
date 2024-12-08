@@ -1,0 +1,106 @@
+require:
+  - rubocop-rspec
+  - rubocop-rails
+
+AllCops:
+  NewCops: enable
+  TargetRailsVersion: 7.1
+  TargetRubyVersion: 3.3
+
+  Exclude:
+    - bin/**/*
+    - db/**/*
+    - lib/tasks/**/*
+    - config/**/*
+
+# mag weg eens dit gemerged is: https://github.com/rubocop/rubocop-capybara/pull/60
+Capybara/NegationMatcher:
+  EnforcedStyle: have_no
+
+# rufo's job
+Layout:
+  Enabled: false
+
+# rufo hft soms een andere mening
+Layout/ArgumentAlignment:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  Enabled: false # rufo neemt eigen beslissingen
+
+Layout/DotPosition:
+  # laat toe om expect { }. te schrijven met een to change op de volgende lijn
+  # en dat is wat rufo netjes formatteert (punt op volgende lijn herschrijft rufo op één lijn)
+  Enabled: false
+
+Rails:
+  Enabled: true
+  Exclude:
+    - lib/cli/**/*
+
+Rails/UnknownEnv:
+  Environments:
+    - production
+    - development
+    - test
+    - staging
+
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+RSpec/Capybara/FeatureMethods:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 20
+
+# volgende twee uitgezet omdat we een model Subject gebruiken
+RSpec/SubjectDeclaration:
+  Enabled: false
+
+Lint/AmbiguousBlockAssociation:
+  Exclude:
+    - spec/**/* # anders mag dit niet: expect { subject.destroy }.not_to change { LichtvisArticle.count }
+
+Style/EmptyElse:
+  AllowComments: true
+
+Lint/UselessAssignment:
+  Exclude:
+    - spec/**/* # we geven regelmatig een naam ter uitleg: article_alt = create(:article)
+
+Naming/VariableNumber:
+  EnforcedStyle: snake_case # variable_1 ipv variable1
+
+Metrics/BlockLength:
+  Exclude:
+    - app/admin/**/* # 'controller do … end' is te lang
+    - spec/**/* # describe blocks zijn te lang
+
+RSpec/ExampleLength:
+  Exclude:
+    - spec/features/**/* # anders mag dit niet: expect { subject.destroy }.not_to change { LichtvisArticle.count }
+
+RSpec/ExpectChange:
+  EnforcedStyle: block
+
+RSpec/MultipleExpectations:
+  Exclude:
+    - spec/features/**/* # anders mag dit niet: expect { subject.destroy }.not_to change { LichtvisArticle.count }
+
+RSpec/NestedGroups:
+  Max: 4
+
+Style/BlockDelimiters:
+  Exclude:
+    - spec/features/**/* # anders mogen expect { } niet over meerdere lijnen
+
+Style/Lambda:
+  EnforcedStyle: literal
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/WordArray:
+  Exclude:
+    - spec/**/* # handig om resultaten uit de console te plakken in de test
