@@ -1,32 +1,54 @@
 require_relative "../setup"
+require_relative "./part_1"
 
 module Day6
-  class Part1
+  class Part2
     GUARD_PATTERN = />|<|\^|v/.freeze
+
+    attr_reader :input
 
     def initialize(input)
       @input = input
       @map_anti_clockwise_turns = 0
     end
 
-    def solve
-      result_map.scan("*").length
+    def self.solve
+      base_input = from_input_file.input
+
+      Day6::Part1.from_input_file.result_map.split("\n").each_with_index.sum do |line, y|
+        line.strip.split("").each_with_index.count do |char, x|
+          next unless char == "*"
+
+          puts "testing #{x},#{y}"
+
+          input = base_input.dup.split("\n").tap { |input| input[y][x] = "#" }.join("\n")
+
+          new(input)
+            .tap { |p| p.guard_moves }
+          # .tap { |p| puts; puts p.input; debugger }
+            .guard_on_map?
+        end
+      end.tpp
     end
 
-    def result_map
+    def guard_moves
       face_right
 
       while guard_on_map?
+        break if guard_been_here?
         move_until_obstacle
+
         turn_map_anti_clockwise
       end
 
-      (4 - @map_anti_clockwise_turns % 4).times { turn_map_anti_clockwise }
-
-      @input
+      # (4 - @map_anti_clockwise_turns % 4).times { turn_map_anti_clockwise }
+      #
+      # @input
     end
 
     def self.from_input_file = new Pathname.new(__dir__).join("input.txt").read
+
+    def guard_on_map? = @input.match(GUARD_PATTERN)
 
     private
 
@@ -45,9 +67,11 @@ module Day6
       @input = @input.sub(GUARD_PATTERN, ">")
     end
 
-    def guard_on_map? = @input.match(GUARD_PATTERN)
-
     def facing_obstacle? = @input.include?(">#")
+
+    def guard_been_here?
+      />\*+#/.match?(@input)
+    end
 
     def move_until_obstacle
       @input = @input.split("\n").map do |line|
@@ -76,4 +100,4 @@ module Day6
   end
 end
 
-# puts Day6::Part1.from_input_file.solve
+puts Day6::Part2.solve

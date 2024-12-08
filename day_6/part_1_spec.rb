@@ -77,3 +77,7 @@ describe Day6::Part1 do
     expect(do_action(input)).to eq output
   end
 end
+
+# 4584
+# 2310
+# 1778
