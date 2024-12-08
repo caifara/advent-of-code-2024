@@ -46,4 +46,3 @@ puts
 # puts Day8::Part2.from_test_input_file.solve_serialize
 # pp Day8::Part2.from_test_input_file.solve
 puts Day8::Part2.from_input_file.solve
-#

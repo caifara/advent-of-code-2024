@@ -24,25 +24,8 @@ class Map
       a_coor.combination(2) do |point1, point2|
         diff = point1 - point2
 
-        antinode_coor = point2
-
-        loop do
-          antinode_coor -= diff
-
-          break if off_grid?(antinode_coor)
-
-          @antinode_coordinates << antinode_coor
-        end
-
-        antinode_coor = point1
-
-        loop do
-          antinode_coor += diff
-
-          break if off_grid?(antinode_coor)
-
-          @antinode_coordinates << antinode_coor
-        end
+        add_antinode_coordinates_from_diff(base: point1, diff:, method: :+)
+        add_antinode_coordinates_from_diff(base: point2, diff:, method: :-)
       end
     end
   end
@@ -81,6 +64,18 @@ class Map
     return if off_grid?(coor)
 
     @antinode_coordinates << coor
+  end
+
+  def add_antinode_coordinates_from_diff(base:, diff:, method:)
+    antinode_coor = base
+
+    loop do
+      antinode_coor = antinode_coor.send(method, diff)
+
+      break if off_grid?(antinode_coor)
+
+      @antinode_coordinates << antinode_coor
+    end
   end
 
   def off_grid?(coordinate)
