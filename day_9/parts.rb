@@ -73,11 +73,7 @@ module Day9
 
       def file? = !empty?
 
-      def to_s
-        @file_id.nil? ? "." * @size : @file_id.to_s * @size
-      end
-
-      def eql?(other) = self == other
+      def to_s = @file_id.nil? ? "." * @size : @file_id.to_s * @size
 
       def ==(other) = @file_id == other.file_id && @size == other.size
 
@@ -85,7 +81,7 @@ module Day9
     end
 
     def file_id
-      @file_id = @input.split("").each_slice(2).each_with_index.map do |(file_block, empty_space), i|
+      @file_id ||= @input.split("").each_slice(2).each_with_index.map do |(file_block, empty_space), i|
         [DiskBlock.new(file_id: i, size: file_block.to_i), DiskBlock.new(file_id: nil, size: empty_space.to_i)]
       end.flatten
     end
@@ -99,30 +95,32 @@ module Day9
         if disk_entry.file?
           blocks_to_rearrange.delete(disk_entry) || DiskBlock.new(file_id: nil, size: disk_entry.size)
         elsif disk_entry.empty?
-          empty_block = disk_entry
-
-          blocks_in_empty_block = []
-
-          loop do
-            if fitting_block_index = blocks_to_rearrange.reverse.find_index { |disk_block| disk_block <= empty_block }
-              fitting_block = blocks_to_rearrange.delete_at(blocks_to_rearrange.length - 1 - fitting_block_index)
-
-              blocks_in_empty_block << fitting_block
-
-              empty_block = DiskBlock.new(file_id: nil, size: empty_block.size - fitting_block.size)
-            else
-              blocks_in_empty_block << empty_block
-              break
-            end
-          end
-
-          blocks_in_empty_block
+          fit_and_delete_candidates_in(empty_block: disk_entry, candidate_blocks: blocks_to_rearrange)
         end
       end.flatten
     end
 
     def compact_entries
       compact.map(&:to_entries).flatten
+    end
+
+    private
+
+    def fit_and_delete_candidates_in(empty_block:, candidate_blocks:)
+      [].tap do |blocks_in_empty_block|
+        loop do
+          if fitting_block_index = candidate_blocks.reverse.find_index { |disk_block| disk_block <= empty_block }
+            fitting_block = candidate_blocks.delete_at(candidate_blocks.length - 1 - fitting_block_index)
+
+            blocks_in_empty_block << fitting_block
+
+            empty_block = DiskBlock.new(file_id: nil, size: empty_block.size - fitting_block.size)
+          else
+            blocks_in_empty_block << empty_block
+            break
+          end
+        end
+      end
     end
   end
 end
