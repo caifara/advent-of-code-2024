@@ -18,6 +18,7 @@ class Calibration
     all_operations.any? do |operation_set|
       operation_set = operation_set.to_enum
       numbers = @numbers.to_enum
+
       sum = numbers.next
 
       (@numbers.length - 1).times do
