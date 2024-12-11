@@ -2,9 +2,6 @@ require_relative "../setup"
 require "benchmark"
 
 module Day11
-  class Stone
-  end
-
   class Part
     def self.from_input_file
       new "5688 62084 2 3248809 179 79 0 172169"
@@ -12,7 +9,7 @@ module Day11
     end
 
     def initialize(input)
-      @input = input.split(" ").map(&:to_i)
+      @input = input.split(" ").map(&:to_i).tally
     end
   end
 
@@ -33,23 +30,13 @@ module Day11
 
     def solve
       75.times do |i|
-        puts i
-        time = Benchmark.measure do
-          @input = @input.map { |value| tick(value) }.flatten
-        end
-        puts "time: #{time.real.to_i}"
+        @input = @input
+          .map { |value, count| Array(tick(value)).map { |value| [value, count] } }
+          .flatten(1)
+          .each_with_object({}) { |(value, count), acc| acc[value] = (acc[value] || 0) + count }
       end
 
-      @input.length
-    end
-  end
-
-  class Part2 < Part
-    def solve
-      map = TopoMap.new(@input)
-      map.find_trailheads.sum do |trailhead|
-        map.find_ways_up(trailhead).length
-      end
+      @input.values.sum
     end
   end
 end
