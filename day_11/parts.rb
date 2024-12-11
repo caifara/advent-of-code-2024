@@ -1,9 +1,9 @@
 require_relative "../setup"
+require "benchmark"
 
 module Day11
-  # class Stone
-  #
-  # end
+  class Stone
+  end
 
   class Part
     def self.from_input_file
@@ -32,8 +32,12 @@ module Day11
     end
 
     def solve
-      25.times do
-        @input = @input.map { |value| tick(value) }.flatten
+      75.times do |i|
+        puts i
+        time = Benchmark.measure do
+          @input = @input.map { |value| tick(value) }.flatten
+        end
+        puts "time: #{time.real.to_i}"
       end
 
       @input.length
