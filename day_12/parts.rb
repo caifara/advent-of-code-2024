@@ -92,13 +92,6 @@ class Region
   end
 end
 
-class Fence
-  def initialize(point, direction)
-    @point = point
-    @direction = direction
-  end
-end
-
 module Day12
   class Part1 < Part
     def solve
