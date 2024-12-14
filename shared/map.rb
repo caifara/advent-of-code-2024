@@ -1,8 +1,16 @@
 class Map
   attr_reader :input
 
-  def initialize(input)
-    @input = input.strip.split("\n").map(&:strip).map { |_| _.split("") }
+  def self.new_from_input(input)
+    new input.strip.split("\n").map(&:strip).map { |_| _.split("") }
+  end
+
+  def self.new_from_width_and_height(width, height)
+    new Array.new(height) { Array.new(width) }
+  end
+
+  def initialize(array_of_arrays)
+    @input = array_of_arrays
   end
 
   def off_grid?(coordinate)
@@ -19,6 +27,12 @@ class Map
         block.call Point[x, y], value
       end
     end
+  end
+
+  def each_row(&block)
+    return enum_for(:each_row) unless block_given?
+
+    @input.each(&block)
   end
 
   def width = @width ||= @input.first.length
@@ -38,7 +52,7 @@ class Point
     new(x, y)
   end
 
-  attr_reader :x, :y
+  attr_accessor :x, :y
 
   def initialize(x, y)
     @x, @y = x, y
