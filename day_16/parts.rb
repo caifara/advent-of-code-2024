@@ -1,6 +1,11 @@
 require_relative "../setup"
 require_relative "map"
 
+def clear_and_show(str)
+  system "clear"
+  puts str
+end
+
 class EmptySpace
   def to_s = "."
 end
@@ -14,6 +19,8 @@ class EndTile
 end
 
 class Reindeer
+  attr_reader :paths
+
   def initialize(map:, point:, direction:)
     @map = map
     @point = point
@@ -90,8 +97,10 @@ class Reindeer
         else
           new_tail = tail + [ReindeerPosition.new(point: new_point, direction: new_direction, prev_dir: direction, tail:)]
 
-          if new_tail.any? { |rp| (lowest_score = @points_and_scores[rp.point]) && lowest_score < rp.cumulative_score }
-            # puts "aborting path, got lower score"
+          if new_tail.any? { |rp| (lowest_score = @points_and_scores[rp.point]) && lowest_score + 1000 < rp.cumulative_score }
+            # pp new_tail.map { |rp| [rp.point, rp.cumulative_score, @points_and_scores[rp.point]] }
+            # clear_and_show @map.serialize(add_points: new_tail.map(&:point), mark: "§")
+            # puts "aborting #{new_tail.map(&:point)} got lower score"
             nil
           else
             @points_and_scores[new_point] = new_tail.last.cumulative_score
@@ -154,12 +163,19 @@ class Maze < Map
     transform_entries_and_values
   end
 
-  def serialize = @entries.map(&:join)
+  def serialize(add_points: [], mark: "O")
+    @entries.map.with_index do |row, y|
+      row.map.with_index do |v, x|
+        if add_points.include?(Point[x, y])
+          mark
+        else
+          v.to_s
+        end
+      end.join
+    end.join("\n")
+  end
 
   private
-
-  def next_points(point)
-  end
 
   def transform_entries_and_values
     each_point_and_value do |point, v|
@@ -180,29 +196,33 @@ end
 
 class Part
   def initialize(input)
-    @maze = maze_class.new_from_input(input.strip)
-  end
-
-  def solve
-    @maze.reindeer.move
+    @maze = Maze.new_from_input(input.strip)
   end
 end
 
 module Day16
   class Part1 < Part
-    private
-
-    def maze_class = Maze
+    def solve
+      @maze.reindeer.move
+    end
   end
 
   class Part2 < Part
-    private
+    def solve
+      _, score = @maze.reindeer.move
 
-    def maze_class = MazeP2
+      paths = @maze.reindeer.paths.select { |path| path.sum(&:score) == score }
+
+      paths.each do |path|
+        puts @maze.serialize(add_points: path.map(&:point), mark: "O")
+      end
+
+      paths.flatten.map(&:point).uniq.length + 1
+    end
   end
 end
 
 # puts Day16::Part1.from_test_input_file.solve
-puts Day16::Part1.from_input_file.solve
+# puts Day16::Part1.from_input_file.solve
 # puts Day16::Part2.from_test_input_file.solve
-# puts Day16::Part2.from_input_file.solve
+puts Day16::Part2.from_input_file.solve
