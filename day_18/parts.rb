@@ -34,7 +34,7 @@ class Runner
   def shortest_path
     find_paths
 
-    puts @map.serialize(add_points: @shortest_path.map(&:point), mark: "O")
+    # puts @map.serialize(add_points: @shortest_path.map(&:point), mark: "O")
 
     @shortest_path
   end
@@ -132,6 +132,10 @@ class MemorySpace < Map
     transform_entries_and_values
   end
 
+  def reset_runner
+    @runner = Runner.new(map: self, point: Point[0, 0])
+  end
+
   def serialize(add_points: [], mark: "O")
     @entries.map.with_index do |row, y|
       row.map.with_index do |v, x|
@@ -150,6 +154,10 @@ class MemorySpace < Map
     end
   end
 
+  def reset_corruption
+    transform_entries_and_values
+  end
+
   private
 
   def transform_entries_and_values
@@ -166,34 +174,59 @@ class MemorySpace < Map
 end
 
 class Part
+  def initialize(input)
+    @corrupted_bytes = input.split("\n").map { |line| line.scan(/\d+/).map(&:to_i) }
+  end
+
+  def setup_memory_space(w, h)
+    @memory_space = MemorySpace.new_from_width_and_height(w + 1, h + 1)
+  end
+
+  def corrupt(limit:)
+    @memory_space.corrupt(@corrupted_bytes[0...limit])
+  end
+
+  def setup_runner
+    @memory_space.setup_runner
+  end
 end
 
 module Day18
   class Part1 < Part
-    def initialize(input)
-      @corrupted_bytes = input.split("\n").map { |line| line.scan(/\d+/).map(&:to_i) }
-    end
-
-    def setup_memory_space(w, h)
-      @memory_space = MemorySpace.new_from_width_and_height(w + 1, h + 1)
-    end
-
-    def corrupt(limit)
-      @memory_space.corrupt(@corrupted_bytes[0...limit])
-    end
-
     def solve
       @memory_space.runner.shortest_path.length - 1
     end
   end
 
   class Part2 < Part
-    def solve
+    def solve(min:)
+      with_corruption_bsearch(min:) do |limit|
+        @memory_space.reset_runner
+        @memory_space.reset_corruption
+
+        @memory_space.corrupt(@corrupted_bytes[0...limit])
+
+        @memory_space.runner.shortest_path.nil?
+      end
+    end
+
+    def with_corruption_bsearch(min:, max: @corrupted_bytes.length, &block)
+      return @corrupted_bytes[min].join(",") if (max - min) == 1
+
+      next_limit = (min + max) / 2
+
+      puts "min: #{min}, max: #{max}, next_limit: #{next_limit}"
+
+      if block.call(next_limit)
+        with_corruption_bsearch(min:, max: next_limit, &block)
+      else
+        with_corruption_bsearch(min: next_limit, max:, &block)
+      end
     end
   end
 end
 
-# puts Day18::Part1.from_test_input_file.tap { |i| i.setup_memory_space(6, 6) }.tap { |i| i.corrupt(12) }.solve
-puts Day18::Part1.from_input_file.tap { |i| i.setup_memory_space(70, 70) }.tap { |i| i.corrupt(1024) }.solve
-# puts Day18::Part1.from_test_input_file.tap { |i| i.setup_memory_space(6, 6) }.tap { |i| i.corrupt(12) }.solve
-# puts Day18::Part2.from_input_file.solve
+# puts Day18::Part1.from_test_input_file.tap { |i| i.setup_memory_space(6, 6) }.tap { |i| i.corrupt(limit: 12) }.solve
+# puts Day18::Part1.from_input_file.tap { |i| i.setup_memory_space(70, 70) }.tap { |i| i.corrupt(limit: 1024) }.solve
+puts Day18::Part2.from_test_input_file.tap { |i| i.setup_memory_space(6, 6) }.solve(min: 13)
+puts Day18::Part2.from_input_file.tap { |i| i.setup_memory_space(70, 70) }.solve(min: 1025)
