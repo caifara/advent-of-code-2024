@@ -99,4 +99,8 @@ class RunnerPosition
   end
 
   def to_s = "#{@point}, #{@tail.length}"
+
+  def steps
+    @tail.length
+  end
 end
