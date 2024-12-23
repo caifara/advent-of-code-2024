@@ -54,6 +54,17 @@ class Map
     [point, value_at(point)]
   end
 
+  def points_on_step_distance_from(point, distance)
+    return enum_for(:points_on_step_distance_from, point, distance) unless block_given?
+
+    diffs = (-distance..distance).to_a.zip((0...distance).to_a + (0..distance).to_a.reverse) +
+            (-(distance - 1)..(distance - 1)).to_a.zip((-distance...0).to_a.reverse + (-(distance - 1)..0).to_a)
+
+    diffs.each do |diff|
+      yield point + Point.new(*diff)
+    end
+  end
+
   def value_at(point) = @entries[point.y][point.x]
 
   def []=(point, value)

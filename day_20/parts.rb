@@ -45,6 +45,28 @@ class Runner < BasicRunner
     cheat_exit_step_counts.map { |steps_count| steps_count + steps_until(cheat_point) }
   end
 
+  def cheat_run_2(cheat_point:, max_dist: 20)
+    puts "cheat_point: #{cheat_point}"
+
+    normal_points = @shortest_path.map(&:point)
+
+    cheat_exit_step_counts = 1.upto(max_dist).map do |dist|
+      @map.points_on_step_distance_from(cheat_point, dist).map do |point|
+        case @map.value_at(point)
+        when EndTile then dist
+        when EmptySpace
+          next unless normal_points.include?(point)
+
+          puts "found shortcut #{cheat_point} -> #{point}"
+
+          dist + steps_from(point)
+        end
+      end.tpp
+    end.flatten.compact
+
+    cheat_exit_step_counts.map { |steps_count| steps_count + steps_until(cheat_point) }
+  end
+
   private
 
   def steps_until(point)
@@ -64,37 +86,39 @@ class Part
   def initialize(input)
     @maze = Maze.new_from_input(input)
   end
+
+  def solve(run_method: :cheat_run)
+    normal_step_count = @maze.runner.run.length
+
+    cheat_step_saves = []
+
+    @maze.runner.shortest_path.each do |runner_position|
+      point = runner_position.point
+
+      @maze.runner.send(run_method, cheat_point: point).each do |steps_count|
+        saved_steps = normal_step_count - steps_count
+        next if saved_steps < 1
+
+        cheat_step_saves << saved_steps
+      end
+    end
+
+    cheat_step_saves.tally.sum { |saved_steps, count| saved_steps >= 100 ? count : 0 }
+  end
 end
 
 module Day20
   class Part1 < Part
-    def solve
-      normal_step_count = @maze.runner.run.length
-
-      cheat_step_saves = []
-
-      @maze.runner.shortest_path.each do |runner_position|
-        point = runner_position.point
-
-        @maze.runner.cheat_run(cheat_point: point).each do |steps_count|
-          saved_steps = normal_step_count - steps_count
-          next if saved_steps < 1
-
-          cheat_step_saves << saved_steps
-        end
-      end
-
-      cheat_step_saves.tally.sum { |saved_steps, count| saved_steps >= 100 ? count : 0 }
-    end
   end
 
   class Part2 < Part
     def solve
+      super(run_method: :cheat_run_2)
     end
   end
 end
 
 # puts Day20::Part1.from_test_input_file.solve
-puts Day20::Part1.from_input_file.solve2
-# puts Day20::Part2.from_test_input_file.solve
+# puts Day20::Part1.from_input_file.solve
+puts Day20::Part2.from_test_input_file.solve
 # puts Day20::Part2.from_input_file.solve
