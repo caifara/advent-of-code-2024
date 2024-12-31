@@ -7,5 +7,6 @@ class Object
   def tpp(message = nil)
     tap { |l| puts message if message }
     tap { |l| pp l }
+    tap { |l| puts "/#{message}" if message }
   end
 end
